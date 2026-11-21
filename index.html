@@ -1,0 +1,324 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>행운의 로또 번호 뽑기</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 30px 15px;
+        font-family: "Malgun Gothic", "맑은 고딕", sans-serif;
+        background: linear-gradient(135deg, #e3f2fd, #fce4ec);
+        text-align: center;
+        color: #333;
+    }
+
+    .container {
+        max-width: 850px;
+        margin: 30px auto;
+        padding: 40px 20px;
+        background: white;
+        border-radius: 25px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+
+    h1 {
+        font-size: 38px;
+        color: #263238;
+        margin-bottom: 15px;
+    }
+
+    .description {
+        font-size: 21px;
+        color: #666;
+        margin-bottom: 40px;
+    }
+
+    .balls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin: 35px 0 45px;
+        min-height: 105px;
+    }
+
+    .ball {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 35px;
+        font-weight: bold;
+        color: white;
+        background: #bdbdbd;
+        box-shadow:
+            inset -5px -7px 12px rgba(0,0,0,0.15),
+            inset 4px 4px 10px rgba(255,255,255,0.4),
+            0 5px 10px rgba(0,0,0,0.2);
+        transition: transform 0.2s;
+    }
+
+    .ball.animate {
+        animation: bounce 0.3s infinite alternate;
+    }
+
+    @keyframes bounce {
+        from {
+            transform: translateY(0) rotate(-5deg);
+        }
+        to {
+            transform: translateY(-8px) rotate(5deg);
+        }
+    }
+
+    .ball:nth-child(1) { background: #fbc02d; color: #333; }
+    .ball:nth-child(2) { background: #2196f3; }
+    .ball:nth-child(3) { background: #f44336; }
+    .ball:nth-child(4) { background: #757575; }
+    .ball:nth-child(5) { background: #4caf50; }
+    .ball:nth-child(6) { background: #9c27b0; }
+
+    .button-area {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    button {
+        min-width: 220px;
+        padding: 22px 35px;
+        font-size: 27px;
+        font-weight: bold;
+        border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        color: white;
+        box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+        transition: transform 0.15s, opacity 0.15s;
+    }
+
+    button:hover {
+        transform: translateY(-3px);
+    }
+
+    button:active {
+        transform: scale(0.96);
+    }
+
+    button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    #drawBtn {
+        background: #1976d2;
+    }
+
+    #resetBtn {
+        background: #ef6c00;
+    }
+
+    #message {
+        margin-top: 35px;
+        font-size: 23px;
+        font-weight: bold;
+        color: #1976d2;
+        min-height: 30px;
+    }
+
+    .footer {
+        margin-top: 35px;
+        font-size: 17px;
+        color: #999;
+    }
+
+    @media (max-width: 600px) {
+        h1 {
+            font-size: 29px;
+        }
+
+        .description {
+            font-size: 18px;
+        }
+
+        .ball {
+            width: 70px;
+            height: 70px;
+            font-size: 29px;
+        }
+
+        .balls {
+            gap: 10px;
+        }
+
+        button {
+            width: 100%;
+            font-size: 23px;
+            padding: 20px;
+        }
+
+        .container {
+            padding: 30px 15px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🍀 행운의 로또 번호 🍀</h1>
+
+    <div class="description">
+        버튼을 누르면 행운의 숫자 6개가 나옵니다!
+    </div>
+
+    <!-- 로또 번호 표시 영역 -->
+    <div class="balls" id="balls">
+        <div class="ball">?</div>
+        <div class="ball">?</div>
+        <div class="ball">?</div>
+        <div class="ball">?</div>
+        <div class="ball">?</div>
+        <div class="ball">?</div>
+    </div>
+
+    <!-- 버튼 영역 -->
+    <div class="button-area">
+
+        <button id="drawBtn" onclick="drawNumbers()">
+            🎯 번호 뽑기
+        </button>
+
+        <button id="resetBtn" onclick="resetNumbers()">
+            🔄 다시 뽑기
+        </button>
+
+    </div>
+
+    <div id="message">
+        행운의 번호를 뽑아 보세요!
+    </div>
+
+    <div class="footer">
+        1부터 45까지 중복 없이 6개 추첨
+    </div>
+
+</div>
+
+<script>
+
+    const balls = document.querySelectorAll(".ball");
+    const drawBtn = document.getElementById("drawBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const message = document.getElementById("message");
+
+    let timer = [];
+
+    // 1~45 사이의 숫자 6개 추첨
+    function getRandomNumbers() {
+
+        let numbers = [];
+
+        while (numbers.length < 6) {
+
+            let num = Math.floor(Math.random() * 45) + 1;
+
+            if (!numbers.includes(num)) {
+                numbers.push(num);
+            }
+        }
+
+        // 작은 숫자부터 정렬
+        return numbers.sort((a, b) => a - b);
+    }
+
+    // 로또 번호 뽑기
+    function drawNumbers() {
+
+        // 이미 추첨 중이면 실행하지 않음
+        if (drawBtn.disabled) return;
+
+        drawBtn.disabled = true;
+        resetBtn.disabled = true;
+
+        message.textContent = "🍀 행운의 번호 추첨 중입니다...";
+
+        // 최종 번호 미리 생성
+        const finalNumbers = getRandomNumbers();
+
+        let count = 0;
+        const maxCount = 20;
+
+        // 숫자가 빠르게 바뀌는 효과
+        const interval = setInterval(() => {
+
+            balls.forEach(ball => {
+
+                let randomNum =
+                    Math.floor(Math.random() * 45) + 1;
+
+                ball.textContent = randomNum;
+                ball.classList.add("animate");
+
+            });
+
+            count++;
+
+            // 20번 반복 후 최종 번호 표시
+            if (count >= maxCount) {
+
+                clearInterval(interval);
+
+                balls.forEach((ball, index) => {
+
+                    ball.textContent = finalNumbers[index];
+                    ball.classList.remove("animate");
+
+                });
+
+                message.textContent =
+                    "🎉 축하합니다! 행운의 번호가 나왔습니다!";
+
+                drawBtn.disabled = false;
+                resetBtn.disabled = false;
+            }
+
+        }, 100);
+    }
+
+    // 다시 뽑기
+    function resetNumbers() {
+
+        // 추첨 중에는 초기화하지 않음
+        if (drawBtn.disabled) return;
+
+        balls.forEach(ball => {
+
+            ball.textContent = "?";
+            ball.classList.remove("animate");
+
+        });
+
+        message.textContent = "새로운 행운의 번호를 뽑아 보세요!";
+
+    }
+
+</script>
+
+</body>
+</html>
